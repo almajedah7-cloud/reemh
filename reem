@@ -1,0 +1,329 @@
+index.html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>لوحة متابعة خطة تحسين الأداء المدرسي - الابتدائية 83</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#111d3b;--purple:#5b2a91;--purple2:#7b45c5;--lav:#eee6f8;
+  --yellow:#e7b83f;--green:#2e9d67;--red:#d95b62;--bg:#f5f5f8;
+  --text:#24213a;--muted:#77738a;--white:#fff;--line:#e8e5ee;
+}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);font-family:"Tahoma","Arial",sans-serif;color:var(--text)}
+button,input,select,textarea{font:inherit} button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+.sidebar{width:255px;position:fixed;right:0;top:0;bottom:0;background:linear-gradient(180deg,var(--navy),#3b176c 55%,var(--purple));color:#fff;padding:18px 12px;z-index:20;transition:.25s;overflow:auto}
+.sidebar.collapsed{width:78px}.sidebar.collapsed .brandText,.sidebar.collapsed .navText{display:none}
+.brand{display:flex;align-items:center;gap:10px;padding:8px 7px 18px;border-bottom:1px solid #ffffff20;margin-bottom:10px}
+.logo{width:50px;height:50px;border-radius:14px;background:#fff;color:var(--purple);display:grid;place-items:center;font-size:21px;font-weight:900}
+.brandText{font-weight:800;font-size:13px;line-height:1.5}
+.nav{display:grid;gap:5px}.nav button{border:0;background:transparent;color:#fff;text-align:right;padding:11px 12px;border-radius:12px;display:flex;align-items:center;gap:11px}
+.nav button:hover,.nav button.active{background:#ffffff22}.navIcon{width:25px;text-align:center;font-size:18px}
+.main{width:calc(100% - 255px);margin-right:255px;padding-bottom:30px;transition:.25s}.main.expanded{width:calc(100% - 78px);margin-right:78px}
+.header{background:linear-gradient(90deg,var(--purple),var(--purple2));color:#fff;padding:14px 22px;position:sticky;top:0;z-index:15;box-shadow:0 4px 16px #0001}
+.headerTop{display:flex;justify-content:space-between;align-items:center;gap:20px}.schoolTitle{font-size:19px;font-weight:900;line-height:1.5}.systemTitle{font-size:12px;opacity:.88}
+.headTools{display:flex;align-items:center;gap:9px}.tool{border:1px solid #fff3;background:#fff1;color:#fff;border-radius:12px;padding:9px 11px}.user{display:flex;align-items:center;gap:8px;background:#fff;color:var(--purple);border-radius:12px;padding:7px 10px;font-weight:700}
+.datebar{margin-top:12px;background:#ffffff18;border:1px solid #fff2;border-radius:12px;padding:9px 13px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px}
+.container{padding:18px}.section{margin-top:18px}.sectionHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.sectionTitle{font-size:18px;font-weight:900}.sub{color:var(--muted);font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:0 4px 14px #25114a08;min-height:112px;position:relative}
+.kpiTop{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}.kpiIcon{width:35px;height:35px;border-radius:11px;background:var(--lav);display:grid;place-items:center;color:var(--purple);font-size:17px}.kpiValue{font-size:25px;font-weight:900;color:var(--purple);margin-top:9px}.trend{font-size:11px;margin-top:5px}.good{color:var(--green)}.warn{color:#b48719}.bad{color:var(--red)}
+.gridCharts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px;box-shadow:0 4px 16px #25114a08}.chartCard{height:300px}.chartCard canvas{max-height:235px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar input,.toolbar select{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 11px;outline:none}.btn{border:0;border-radius:11px;padding:10px 14px;font-weight:800}.primary{background:var(--purple);color:#fff}.navy{background:var(--navy);color:#fff}.yellow{background:var(--yellow);color:#2c260e}.light{background:var(--lav);color:var(--purple)}.danger{background:#fee9eb;color:#b13b43}
+.tableWrap{overflow:auto;border:1px solid var(--line);border-radius:14px}.table{width:100%;border-collapse:collapse;min-width:1050px;background:#fff}.table th{background:#f7f3fb;color:var(--purple);font-size:12px;padding:11px;text-align:right;white-space:nowrap}.table td{padding:10px;border-top:1px solid var(--line);font-size:12px;vertical-align:middle}.badge{display:inline-block;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:800}.bgreen{background:#e5f6ee;color:#23794f}.byellow{background:#fff6d8;color:#956f10}.bred{background:#fde9eb;color:#ae3c46}.bpurple{background:var(--lav);color:var(--purple)}
+.actions{display:flex;gap:5px}.mini{padding:6px 8px;border:0;border-radius:8px;background:#f1eef6;color:var(--purple)}
+.progress{height:7px;background:#eeeaf2;border-radius:10px;overflow:hidden}.progress span{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--purple2))}
+.quick{display:grid;grid-template-columns:repeat(7,1fr);gap:9px}.quick button{min-height:54px}
+.alerts{display:grid;gap:8px}.alert{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px;border-radius:12px;border:1px solid var(--line);background:#fff}.alertMain{display:flex;gap:10px;align-items:center}.dot{width:10px;height:10px;border-radius:50%;background:var(--yellow)}.dot.red{background:var(--red)}.dot.green{background:var(--green)}
+.modalBack{display:none;position:fixed;inset:0;background:#11152c88;z-index:50;align-items:center;justify-content:center;padding:18px}.modalBack.show{display:flex}.modal{background:#fff;border-radius:20px;width:min(900px,100%);max-height:92vh;overflow:auto;padding:20px;box-shadow:0 20px 60px #0003}.modalHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.close{border:0;background:#f1edf6;border-radius:10px;padding:8px}.formGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field label{display:block;font-size:12px;font-weight:800;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fbfbfd;outline:none}.field textarea{min-height:85px;resize:vertical}.full{grid-column:1/-1}.modalFoot{display:flex;justify-content:flex-start;gap:8px;margin-top:15px}
+.vision{display:grid;grid-template-columns:1fr 1fr;gap:14px}.visionCard{background:linear-gradient(135deg,#fff,#f7f1fc);border:1px solid #e4d9f0;border-radius:17px;padding:18px}.visionCard h3{margin:0 0 8px;color:var(--purple)}.visionGoals{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.goal{padding:10px;background:#fff;border-radius:11px;border-right:4px solid var(--yellow);font-size:12px}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.gridCharts{grid-template-columns:1fr 1fr}.quick{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:750px){.sidebar{width:78px}.sidebar .brandText,.sidebar .navText{display:none}.main{width:calc(100% - 78px);margin-right:78px}.headerTop{align-items:flex-start}.schoolTitle{font-size:14px}.headTools .tool{display:none}.gridCharts,.vision{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr}.formGrid{grid-template-columns:1fr}.quick{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">83</div>
+    <div class="brandText">الابتدائية الثالثة والثمانون<br>للطفولة المبكرة والروضة</div>
+  </div>
+  <div class="nav" id="nav"></div>
+  <button class="btn light" style="width:100%;margin-top:12px" onclick="toggleSidebar()">☰ <span class="navText">طي القائمة</span></button>
+</aside>
+
+<main class="main" id="main">
+<header class="header">
+  <div class="headerTop">
+    <div>
+      <div class="schoolTitle">الابتدائية الثالثة والثمانون للطفولة المبكرة والروضة الملحقة بها</div>
+      <div class="systemTitle">لوحة متابعة خطة تحسين الأداء المدرسي</div>
+    </div>
+    <div class="headTools">
+      <button class="tool">🔔 <span id="alertCount">0</span></button>
+      <button class="tool">✉</button>
+      <button class="tool">⚙</button>
+      <div class="user">👤 مديرة المدرسة ▾</div>
+      <div style="font-size:34px" title="المملكة العربية السعودية">🇸🇦</div>
+    </div>
+  </div>
+  <div class="datebar">
+    <span id="liveDate">جاري تحميل التاريخ...</span>
+    <span>العام الدراسي: <b>1448هـ / 2026م</b></span>
+  </div>
+</header>
+
+<div class="container">
+<section class="section">
+  <div class="sectionHead"><div><div class="sectionTitle">لوحة المؤشرات الرئيسية</div><div class="sub">متابعة خطة تحسين الأداء المدرسي بصورة لحظية</div></div></div>
+  <div class="kpis" id="kpis"></div>
+</section>
+
+<section class="section">
+ <div class="gridCharts">
+  <div class="card chartCard"><div class="sectionHead"><b>نسبة تنفيذ البرامج</b></div><canvas id="donutPrograms"></canvas></div>
+  <div class="card chartCard"><div class="sectionHead"><b>الدرجة الحالية مقابل المستهدفة</b></div><canvas id="scores"></canvas></div>
+  <div class="card chartCard"><div class="sectionHead"><b>المستوى الحالي مقابل المستهدف</b></div><canvas id="levels"></canvas></div>
+  <div class="card chartCard"><div class="sectionHead"><b>نسبة تحقيق المؤشرات</b></div><canvas id="donutIndicators"></canvas></div>
+  <div class="card chartCard"><div class="sectionHead"><b>نسبة الإنجاز حسب المجال</b></div><canvas id="domains"></canvas></div>
+  <div class="card chartCard"><div class="sectionHead"><b>تنفيذ المبادرات خلال العام</b></div><canvas id="timeline"></canvas></div>
+ </div>
+</section>
+
+<section class="section card">
+ <div class="sectionHead">
+  <div><div class="sectionTitle">الأداء المدرسي</div><div class="sub">المؤشرات والدرجات وحالات التحسين</div></div>
+  <div class="toolbar">
+   <input id="searchIndicator" placeholder="بحث...">
+   <select id="filterDomain"><option value="">كل المجالات</option></select>
+   <select id="filterStatus"><option value="">كل الحالات</option><option>مكتمل</option><option>قيد التحسين</option><option>يحتاج تدخل</option></select>
+   <button class="btn light" onclick="exportTable('indicators')">تصدير Excel</button>
+   <button class="btn navy" onclick="printReport('الأداء المدرسي')">PDF / طباعة</button>
+  </div>
+ </div>
+ <div class="tableWrap"><table class="table"><thead><tr><th>مسلسل</th><th>المجال</th><th>المؤشر</th><th>الحالية</th><th>المستوى الحالي</th><th>المستهدفة</th><th>المستوى المستهدف</th><th>التحسن</th><th>الإنجاز</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="indicatorBody"></tbody></table></div>
+</section>
+
+<section class="section card">
+ <div class="sectionHead">
+  <div><div class="sectionTitle">البرامج والمبادرات وخطة التحسين</div><div class="sub">إدارة المبادرات وربطها بالمؤشرات والشواهد</div></div>
+  <div class="toolbar"><button class="btn primary" onclick="openProgram()">＋ إضافة مبادرة / برنامج</button><button class="btn light" onclick="exportTable('programs')">تصدير Excel</button><button class="btn navy" onclick="printReport('البرامج والمبادرات وخطة التحسين')">PDF / طباعة</button></div>
+ </div>
+ <div class="toolbar" style="margin-bottom:10px"><input id="searchProgram" placeholder="بحث في البرامج..."><select id="programStatus"><option value="">كل الحالات</option><option>لم يبدأ</option><option>جاري التنفيذ</option><option>مكتمل</option></select></div>
+ <div class="tableWrap"><table class="table"><thead><tr><th>#</th><th>المجال</th><th>المؤشر</th><th>المعيار الفرعي</th><th>المبادرة / البرنامج</th><th>المسؤول</th><th>البداية</th><th>النهاية</th><th>الإنجاز</th><th>الحالة</th><th>المتابعة</th><th>الشواهد</th><th>الإجراءات</th></tr></thead><tbody id="programBody"></tbody></table></div>
+</section>
+
+<section class="section">
+ <div class="sectionHead"><div class="sectionTitle">الرؤية الوطنية 2030</div></div>
+ <div class="vision">
+  <div class="visionCard"><h3>🇸🇦 مواءمة خطة التحسين مع رؤية المملكة 2030</h3><p class="sub">ربط المبادرات المدرسية بالأولويات الوطنية والتحول الرقمي وتنمية الإنسان والبيئة التعليمية.</p>
+   <div class="visionGoals">
+    <div class="goal">مجتمع حيوي: تعزيز القيم والهوية الوطنية.</div>
+    <div class="goal">اقتصاد مزدهر: تنمية المهارات المستقبلية.</div>
+    <div class="goal">وطن طموح: رفع جودة الأداء المؤسسي.</div>
+    <div class="goal">التحول الرقمي: تفعيل التعلم والتقنيات الرقمية.</div>
+   </div>
+  </div>
+  <div class="visionCard"><h3>مؤشرات المواءمة الوطنية</h3><canvas id="visionChart" style="max-height:190px"></canvas></div>
+ </div>
+</section>
+
+<section class="section">
+ <div class="quick">
+  <button class="btn primary" onclick="openProgram()">＋ إضافة مبادرة / برنامج</button>
+  <button class="btn light" onclick="toast('يمكن إضافة نموذج متابعة من قسم المتابعات')">＋ إضافة متابعة</button>
+  <button class="btn light" onclick="toast('يمكن ربط الشاهد داخل البرنامج أو قسم الشواهد')">＋ إضافة شاهد تحقق</button>
+  <button class="btn light" onclick="addIndicator()">＋ إضافة مؤشر</button>
+  <button class="btn light" onclick="addMember()">＋ إضافة عضو فريق</button>
+  <button class="btn navy" onclick="printReport('تقرير خطة التحسين')">إنشاء تقرير</button>
+  <button class="btn yellow" onclick="toast('تم فتح عرض خطة التحسين')">عرض خطة التحسين</button>
+ </div>
+</section>
+
+<section class="section">
+ <div class="gridCharts" style="grid-template-columns:1fr 1fr">
+  <div class="card"><div class="sectionHead"><div class="sectionTitle">لوحة قياس أثر البرامج والمبادرات</div></div><div class="kpis" style="grid-template-columns:repeat(3,1fr)" id="impactCards"></div><canvas id="impactChart" style="margin-top:15px;max-height:230px"></canvas></div>
+  <div class="card"><div class="sectionHead"><div class="sectionTitle">أحدث التنبيهات</div></div><div class="alerts" id="alerts"></div></div>
+ </div>
+</section>
+
+<section class="section card">
+ <div class="sectionHead"><div><div class="sectionTitle">فريق العمل لبناء خطة تحسين الأداء المدرسي</div><div class="sub">مديرة المدرسة: أمل عمر الزايدي</div></div><button class="btn primary" onclick="addMember()">＋ إضافة عضو</button></div>
+ <div class="tableWrap"><table class="table" style="min-width:800px"><thead><tr><th>الاسم</th><th>المسمى</th><th>المهمة</th><th>المجال</th><th>نسبة المشاركة</th><th>الإجراءات</th></tr></thead><tbody id="teamBody"></tbody></table></div>
+</section>
+
+<div class="footer">الابتدائية الثالثة والثمانون للطفولة المبكرة والروضة الملحقة بها — 1448هـ / 2026م — مديرة المدرسة: أمل عمر الزايدي — إعداد وتصميم: ريما الحارثي</div>
+</div>
+</main>
+</div>
+
+<div class="modalBack" id="modalBack"><div class="modal">
+ <div class="modalHead"><h2 id="modalTitle" style="margin:0;color:var(--purple)">إضافة مبادرة / برنامج</h2><button class="close" onclick="closeModal()">✕</button></div>
+ <form id="programForm"><div class="formGrid">
+  <div class="field"><label>المجال</label><select name="domain" id="programDomain" required></select></div>
+  <div class="field"><label>المؤشر</label><input name="indicator" required></div>
+  <div class="field"><label>المعيار الفرعي</label><input name="substandard"></div>
+  <div class="field"><label>المستوى الحالي</label><input name="currentLevel"></div>
+  <div class="field"><label>الدرجة الحالية</label><input type="number" name="current" min="0" max="100" value="70"></div>
+  <div class="field"><label>المستوى المستهدف</label><input name="targetLevel" value="ممتاز"></div>
+  <div class="field"><label>الدرجة المستهدفة</label><input type="number" name="target" min="0" max="100" value="90"></div>
+  <div class="field"><label>تاريخ التنفيذ من</label><input type="date" name="start" required></div>
+  <div class="field"><label>تاريخ التنفيذ إلى</label><input type="date" name="end" required></div>
+  <div class="field"><label>المبادرة / البرنامج</label><input name="name" required></div>
+  <div class="field full"><label>وصف المبادرة</label><textarea name="description"></textarea></div>
+  <div class="field full"><label>الأنشطة والإجراءات</label><textarea name="activities"></textarea></div>
+  <div class="field"><label>الفئة المستهدفة</label><input name="targetGroup"></div>
+  <div class="field"><label>مؤشر الأداء</label><input name="kpi"></div>
+  <div class="field"><label>القيمة السابقة</label><input type="number" name="previous" value="60"></div>
+  <div class="field"><label>القيمة الحالية</label><input type="number" name="value" value="70"></div>
+  <div class="field"><label>القيمة المستهدفة</label><input type="number" name="valueTarget" value="90"></div>
+  <div class="field"><label>المسؤول عن التنفيذ</label><input name="owner" value="أمل عمر الزايدي"></div>
+  <div class="field"><label>حالة التنفيذ</label><select name="status"><option>لم يبدأ</option><option>جاري التنفيذ</option><option>مكتمل</option></select></div>
+  <div class="field"><label>نسبة الإنجاز</label><input type="number" name="progress" min="0" max="100" value="50"></div>
+  <div class="field full"><label>رابط الشاهد / التقرير</label><input name="link" type="url" placeholder="https://..."></div>
+  <div class="field full"><label>الملاحظات</label><textarea name="notes"></textarea></div>
+ </div><div class="modalFoot"><button class="btn primary" type="submit">حفظ</button><button class="btn yellow" type="button" onclick="saveAndNew()">حفظ وإضافة جديد</button><button class="btn light" type="button" onclick="closeModal()">إلغاء</button></div></form>
+</div></div>
+
+<script>
+const domains=["الإدارة المدرسية","التعليم والتعلم","نواتج التعلم","البيئة المدرسية","الأنشطة المدرسية","التوجيه الطلابي"];
+const indicators=[
+["الإدارة المدرسية","تضع المدرسة خطة تشغيلية مكتملة العناصر وفق أهداف تطويرية محددة.",78,90],
+["الإدارة المدرسية","تتابع المدرسة تنفيذ خطتها وتطورها بما يضمن تحقيق أهدافها.",72,90],
+["الإدارة المدرسية","تعزز المدرسة القيم الإسلامية والهوية الوطنية.",82,95],
+["الإدارة المدرسية","تطبق المدرسة التقويم الذاتي المبني على المعايير المعتمدة من الهيئة.",68,90],
+["التعليم والتعلم","تنوع المدرسة في استراتيجيات التدريس لتلبية احتياج المتعلمين ودعم تعلمهم.",74,90],
+["التعليم والتعلم","تفعل المدرسة التعلم الإلكتروني لتلبية احتياج المتعلمين ودعم تعلمهم.",80,95],
+["التعليم والتعلم","تنمي المهارات الرقمية لدى المتعلمين.",76,92],
+["التعليم والتعلم","تحلل المدرسة نتائج التقويم وتوظفها في تحسين نواتج التعلم بانتظام.",70,90],
+["نواتج التعلم","يحقق المتعلمون نتائج متقدمة في مجال القراءة وفقًا للاختبارات الوطنية.",73,90],
+["نواتج التعلم","يحقق المتعلمون نتائج متقدمة في مجال الرياضيات وفقًا للاختبارات الوطنية.",71,90],
+["نواتج التعلم","يظهر المتعلمون الاعتزاز بالقيم والهوية الوطنية.",86,95],
+["نواتج التعلم","يلتزم المتعلمون بقواعد السلوك والانضباط المدرسي.",88,95],
+["البيئة المدرسية","توفر المدرسة بيئة تعليمية آمنة ومحفزة للتعلم.",79,92],
+["الأنشطة المدرسية","توظف المدرسة الأنشطة لتنمية مهارات المتعلمين.",75,90],
+["التوجيه الطلابي","تقدم المدرسة خدمات توجيهية تلبي احتياجات المتعلمين.",81,93]
+];
+let programs=JSON.parse(localStorage.getItem("school83_programs")||"null")||[
+{domain:"الإدارة المدرسية",indicator:"خطة تشغيلية مكتملة العناصر",substandard:"التخطيط والتحسين",name:"مبادرة رفع جودة الخطة التشغيلية",owner:"أمل عمر الزايدي",start:"2026-08-20",end:"2026-10-20",progress:72,status:"جاري التنفيذ",link:"",previous:60,value:72,valueTarget:90},
+{domain:"التعليم والتعلم",indicator:"التعلم الإلكتروني",substandard:"التحول الرقمي",name:"مبادرة تفعيل التعلم الرقمي",owner:"فريق التعليم والتعلم",start:"2026-08-15",end:"2026-11-15",progress:55,status:"جاري التنفيذ",link:"",previous:50,value:65,valueTarget:90},
+{domain:"نواتج التعلم",indicator:"القراءة",substandard:"نواتج التعلم",name:"مبادرة تنمية مهارات القراءة",owner:"معلمات الصفوف",start:"2026-09-01",end:"2027-01-15",progress:35,status:"جاري التنفيذ",link:"",previous:62,value:70,valueTarget:90},
+{domain:"البيئة المدرسية",indicator:"بيئة آمنة ومحفزة",substandard:"البيئة التعليمية",name:"مبادرة بيئتي المدرسية",owner:"الوكيلات",start:"2026-08-25",end:"2026-12-10",progress:100,status:"مكتمل",link:"",previous:70,value:92,valueTarget:90}
+];
+let team=JSON.parse(localStorage.getItem("school83_team")||"null")||[
+{name:"أمل عمر الزايدي",role:"مديرة المدرسة",task:"الإشراف العام",domain:"جميع المجالات",share:100},
+{name:"الوكيلات",role:"وكيلات المدرسة",task:"المتابعة والتنفيذ",domain:"الإدارة المدرسية",share:85},
+{name:"الموجهة الطلابية",role:"موجهة طلابية",task:"التوجيه والدعم",domain:"التوجيه الطلابي",share:80},
+{name:"رائدة النشاط",role:"رائدة نشاط",task:"المبادرات والأنشطة",domain:"الأنشطة المدرسية",share:80},
+{name:"المعلمات",role:"معلمات",task:"التنفيذ وقياس الأثر",domain:"التعليم والتعلم",share:90}
+];
+let charts={};
+
+function save(){localStorage.setItem("school83_programs",JSON.stringify(programs));localStorage.setItem("school83_team",JSON.stringify(team))}
+function toggleSidebar(){document.getElementById("sidebar").classList.toggle("collapsed");document.getElementById("main").classList.toggle("expanded")}
+function toast(msg){let x=document.createElement("div");x.textContent=msg;x.style="position:fixed;bottom:22px;left:22px;background:#111d3b;color:white;padding:12px 16px;border-radius:12px;z-index:100;font-weight:bold;box-shadow:0 8px 30px #0003";document.body.appendChild(x);setTimeout(()=>x.remove(),2200)}
+function updateClock(){
+ const d=new Date();
+ const days=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+ const g=new Intl.DateTimeFormat("ar-SA-u-ca-gregory",{dateStyle:"long"}).format(d);
+ const h=new Intl.DateTimeFormat("ar-SA-u-ca-islamic",{dateStyle:"long"}).format(d);
+ const t=new Intl.DateTimeFormat("ar-SA",{timeStyle:"medium"}).format(d);
+ document.getElementById("liveDate").textContent=`${days[d.getDay()]} | ${h} | ${g} | ${t}`;
+}
+setInterval(updateClock,1000);updateClock();
+
+const navItems=["⌂ الرئيسية","▣ الأداء المدرسي","◫ خطة التحسين","⚙ الإدارة المدرسية","▤ التعليم والتعلم","✓ نواتج التعلم","▥ البيئة المدرسية","♡ الأنشطة المدرسية","◎ التوجيه الطلابي","▦ البرامج والمبادرات","◷ المتابعات","◇ شواهد التحقق","♙ فريق العمل","◉ لوحة المؤشرات","⚠ التنبيهات","▧ التقارير","⚙ الإعدادات","♙ الصلاحيات والمستخدمون"];
+document.getElementById("nav").innerHTML=navItems.map((x,i)=>`<button class="${i===0?'active':''}" onclick="navClick(${i})"><span class="navIcon">${x.split(' ')[0]}</span><span class="navText">${x.substring(x.indexOf(' ')+1)}</span></button>`).join("");
+function navClick(i){document.querySelectorAll(".nav button").forEach((b,j)=>b.classList.toggle("active",j===i)); if(i===9) document.getElementById("programBody").scrollIntoView({behavior:"smooth"}); if(i===1) document.getElementById("indicatorBody").scrollIntoView({behavior:"smooth"});}
+
+function statusBadge(s){return `<span class="badge ${s==="مكتمل"?"bgreen":s==="جاري التنفيذ"?"byellow":"bred"}">${s}</span>`}
+function level(v){return v>=90?"ممتاز":v>=80?"جيد جدًا":v>=70?"جيد":"يحتاج تحسين"}
+function pct(a,b){return b?Math.min(100,Math.round(a/b*100)):0}
+function renderKpis(){
+ const completed=programs.filter(p=>p.status==="مكتمل").length, running=programs.filter(p=>p.status==="جاري التنفيذ").length, notStarted=programs.filter(p=>p.status==="لم يبدأ").length;
+ const late=programs.filter(p=>p.end && new Date(p.end)<new Date() && p.status!=="مكتمل").length;
+ const avg=programs.length?Math.round(programs.reduce((s,p)=>s+Number(p.progress||0),0)/programs.length):0;
+ const indAvg=Math.round(indicators.reduce((s,x)=>s+x[2],0)/indicators.length);
+ const targetAvg=Math.round(indicators.reduce((s,x)=>s+x[3],0)/indicators.length);
+ const items=[
+ ["الدرجة الحالية",indAvg,"◉","↑ تحسن","good"],["المستوى الحالي",level(indAvg),"◆","مستوى الأداء","good"],["المستوى المستهدف","ممتاز","◎","الهدف الوطني","good"],["الدرجة المستهدفة",targetAvg,"◎","الهدف","good"],
+ ["نسبة تحقق خطة التحسين",avg+"%","◔","محسوبة تلقائيًا","good"],["نسبة التحسن",Math.max(0,Math.round(indAvg-65))+"%","↗","مقارنة بالخط الأساس","good"],["إجمالي المؤشرات",indicators.length,"☷","جميع المجالات","good"],["إجمالي البرامج والمبادرات",programs.length,"▣","مبادرات مسجلة","good"],
+ ["البرامج المنفذة",completed,"✓","مكتمل","good"],["البرامج قيد التنفيذ",running,"◷","متابعة","warn"],["البرامج غير المنفذة",notStarted,"×","لم يبدأ","bad"],["نسبة التنفيذ",programs.length?Math.round(completed/programs.length*100):0+"%","◔","مكتمل من الإجمالي","good"],
+ ["عدد المتابعات",programs.length*2,"□","سجلات متابعة","good"],["عدد شواهد التحقق",programs.filter(p=>p.link).length,"◇","روابط شواهد","good"],["المؤشرات التي تحتاج تحسين",indicators.filter(x=>x[2]<75).length,"!","تحتاج متابعة","warn"],["البرامج المتأخرة",late,"⚠","تحتاج تدخل","bad"]
+ ];
+ document.getElementById("kpis").innerHTML=items.map(a=>`<div class="kpi"><div class="kpiTop"><span>${a[0]}</span><span class="kpiIcon">${a[2]}</span></div><div class="kpiValue">${typeof a[1]==="number"&&a[0].includes("نسبة")?a[1]+"%":a[1]}</div><div class="trend ${a[4]}">${a[3]}</div></div>`).join("");
+ document.getElementById("alertCount").textContent=late+notStarted;
+}
+function renderIndicators(){
+ const q=(document.getElementById("searchIndicator").value||"").toLowerCase(), fd=document.getElementById("filterDomain").value, fs=document.getElementById("filterStatus").value;
+ const rows=indicators.map((x,i)=>{let s=x[2]>=x[3]?"مكتمل":x[2]>=75?"قيد التحسين":"يحتاج تدخل";return {x,i,s}}).filter(o=>(!q||o.x.join(" ").toLowerCase().includes(q))&&(!fd||o.x[0]===fd)&&(!fs||o.s===fs));
+ document.getElementById("indicatorBody").innerHTML=rows.map((o,k)=>{let x=o.x,improve=Math.max(0,Math.round((x[2]-60)/60*100)),done=pct(x[2],x[3]);return `<tr><td>${o.i+1}</td><td>${x[0]}</td><td style="max-width:310px">${x[1]}</td><td>${x[2]}</td><td>${level(x[2])}</td><td>${x[3]}</td><td>${level(x[3])}</td><td>${improve}%</td><td>${done}%<div class="progress"><span style="width:${done}%"></span></div></td><td>${o.s==="مكتمل"?'<span class="badge bgreen">مكتمل</span>':o.s==="قيد التحسين"?'<span class="badge byellow">قيد التحسين</span>':'<span class="badge bred">يحتاج تدخل</span>'}</td><td><div class="actions"><button class="mini" onclick="viewIndicator(${o.i})">عرض</button><button class="mini" onclick="editIndicator(${o.i})">تعديل</button><button class="mini" onclick="deleteIndicator(${o.i})">حذف</button></div></td></tr>`}).join("");
+}
+function renderPrograms(){
+ const q=(document.getElementById("searchProgram").value||"").toLowerCase(), fs=document.getElementById("programStatus").value;
+ const rows=programs.filter(p=>(!q||JSON.stringify(p).toLowerCase().includes(q))&&(!fs||p.status===fs));
+ document.getElementById("programBody").innerHTML=rows.map((p,i)=>`<tr><td>${i+1}</td><td>${p.domain}</td><td>${p.indicator||"-"}</td><td>${p.substandard||"-"}</td><td><b>${p.name}</b><div class="sub">${p.description||""}</div></td><td>${p.owner}</td><td>${p.start||"-"}</td><td>${p.end||"-"}</td><td><b>${p.progress}%</b><div class="progress"><span style="width:${p.progress}%"></span></div></td><td>${statusBadge(p.status)}</td><td>✓</td><td>${p.link?`<a href="${p.link}" target="_blank">فتح الشاهد</a>`:"—"}</td><td><div class="actions"><button class="mini" onclick="viewProgram(${programs.indexOf(p)})">عرض</button><button class="mini" onclick="editProgram(${programs.indexOf(p)})">تعديل</button><button class="mini" onclick="deleteProgram(${programs.indexOf(p)})">حذف</button></div></td></tr>`).join("");
+}
+function renderTeam(){document.getElementById("teamBody").innerHTML=team.map((m,i)=>`<tr><td><b>${m.name}</b></td><td>${m.role}</td><td>${m.task}</td><td>${m.domain}</td><td>${m.share}%</td><td><button class="mini" onclick="editMember(${i})">تعديل</button> <button class="mini" onclick="team.splice(${i},1);save();renderAll()">حذف</button></td></tr>`).join("")}
+function renderAlerts(){
+ let arr=[];const now=new Date();
+ programs.forEach((p,i)=>{if(p.end&&new Date(p.end)<now&&p.status!=="مكتمل")arr.push(["red","مبادرة متأخرة عن موعد التنفيذ",p]);if(p.status==="لم يبدأ")arr.push(["red","برنامج لم يبدأ",p]);if(p.progress<50)arr.push(["","نسبة إنجاز منخفضة",p]);if(!p.link)arr.push(["","لا يوجد شاهد تحقق",p]);});
+ document.getElementById("alerts").innerHTML=(arr.slice(0,7).length?arr.slice(0,7):[["green","لا توجد تنبيهات حرجة", {name:"الخطة الحالية",owner:"فريق العمل",progress:100}]]).map(a=>`<div class="alert"><div class="alertMain"><span class="dot ${a[0]}"></span><div><b>${a[1]}</b><div class="sub">${a[2].name} — ${a[2].owner} — الإنجاز ${a[2].progress}%</div></div></div><button class="mini" onclick="toast('عرض تفاصيل: ${a[2].name}')">عرض التفاصيل</button></div>`).join("");
+}
+function destroyCharts(){Object.values(charts).forEach(c=>c&&c.destroy());charts={}}
+function makeCharts(){
+ destroyCharts();const labels=domains;
+ const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:"Tahoma"}}}},scales:{x:{ticks:{font:{family:"Tahoma"}}},y:{beginAtZero:true,max:100,ticks:{font:{family:"Tahoma"}}}}};
+ charts.donutPrograms=new Chart(document.getElementById("donutPrograms"),{type:"doughnut",data:{labels:["مكتمل","جاري التنفيذ","لم يبدأ"],datasets:[{data:[programs.filter(p=>p.status==="مكتمل").length,programs.filter(p=>p.status==="جاري التنفيذ").length,programs.filter(p=>p.status==="لم يبدأ").length]}]},options:{responsive:true,plugins:{legend:{position:"bottom"}}}});
+ const current=labels.map(d=>Math.round(indicators.filter(x=>x[0]===d).reduce((s,x)=>s+x[2],0)/(indicators.filter(x=>x[0]===d).length||1)));
+ const target=labels.map(d=>Math.round(indicators.filter(x=>x[0]===d).reduce((s,x)=>s+x[3],0)/(indicators.filter(x=>x[0]===d).length||1)));
+ charts.scores=new Chart(document.getElementById("scores"),{type:"bar",data:{labels,datasets:[{label:"الحالية",data:current},{label:"المستهدفة",data:target}]},options:base});
+ charts.levels=new Chart(document.getElementById("levels"),{type:"bar",data:{labels,datasets:[{label:"المستوى الحالي",data:current.map(v=>Math.round(v/20))},{label:"المستوى المستهدف",data:target.map(v=>Math.round(v/20))}]},options:{...base,scales:{...base.scales,y:{beginAtZero:true,max:5}}}});
+ const achieved=indicators.filter(x=>x[2]>=x[3]).length;
+ charts.donutIndicators=new Chart(document.getElementById("donutIndicators"),{type:"doughnut",data:{labels:["متحقق","يحتاج تحسين"],datasets:[{data:[achieved,indicators.length-achieved]}]},options:{plugins:{legend:{position:"bottom"}}}});
+ const domainProgress=labels.map(d=>programs.filter(p=>p.domain===d).length?Math.round(programs.filter(p=>p.domain===d).reduce((s,p)=>s+p.progress,0)/programs.filter(p=>p.domain===d).length):0);
+ charts.domains=new Chart(document.getElementById("domains"),{type:"bar",data:{labels,datasets:[{label:"نسبة الإنجاز",data:domainProgress}]},options:base});
+ charts.timeline=new Chart(document.getElementById("timeline"),{type:"line",data:{labels:["محرم","صفر","ربيع الأول","ربيع الآخر","جمادى الأولى","جمادى الآخرة"],datasets:[{label:"نسبة التنفيذ",data:[15,28,42,55,68,78],tension:.35,fill:false}]},options:base});
+ charts.vision=new Chart(document.getElementById("visionChart"),{type:"bar",data:{labels:["مجتمع حيوي","اقتصاد مزدهر","وطن طموح","تحول رقمي"],datasets:[{label:"نسبة المواءمة",data:[88,76,91,84]}]},options:{...base,indexAxis:"y",scales:{x:{beginAtZero:true,max:100}}}});
+ const impacts=programs.map(p=>({name:p.name,before:p.previous||60,after:p.value||p.progress,target:p.valueTarget||90})).slice(0,6);
+ charts.impact=new Chart(document.getElementById("impactChart"),{type:"bar",data:{labels:impacts.map(x=>x.name),datasets:[{label:"قبل التنفيذ",data:impacts.map(x=>x.before)},{label:"بعد التنفيذ",data:impacts.map(x=>x.after)},{label:"المستهدف",data:impacts.map(x=>x.target)}]},options:base});
+ const hi=programs.filter(p=>(p.value||0)>=((p.valueTarget||90)*.9)).length,mid=programs.filter(p=>(p.value||0)>=((p.valueTarget||90)*.7)&&(p.value||0)<((p.valueTarget||90)*.9)).length,low=programs.length-hi-mid;
+ document.getElementById("impactCards").innerHTML=[["أثر مرتفع",hi],["أثر متوسط",mid],["تحتاج تطويرًا",low],["متوسط التحسن",Math.round(programs.reduce((s,p)=>s+Math.max(0,(p.value||0)-(p.previous||0)),0)/(programs.length||1))+"%"],["متوسط تحقق الأهداف",Math.round(programs.reduce((s,p)=>s+p.progress,0)/(programs.length||1))+"%"],["إجمالي المستفيدين",programs.length*35]].map(x=>`<div class="kpi" style="min-height:92px"><div class="kpiTop">${x[0]}</div><div class="kpiValue" style="font-size:20px">${x[1]}</div></div>`).join("");
+}
+function renderAll(){save();renderKpis();renderIndicators();renderPrograms();renderTeam();renderAlerts();makeCharts()}
+domains.forEach(d=>{document.getElementById("filterDomain").insertAdjacentHTML("beforeend",`<option>${d}</option>`);document.getElementById("programDomain").insertAdjacentHTML("beforeend",`<option>${d}</option>`)});
+["searchIndicator","filterDomain","filterStatus"].forEach(id=>document.getElementById(id).addEventListener("input",renderIndicators));
+["searchProgram","programStatus"].forEach(id=>document.getElementById(id).addEventListener("input",renderPrograms));
+
+function openProgram(index=null){
+ document.getElementById("programForm").reset();document.getElementById("modalTitle").textContent=index===null?"إضافة مبادرة / برنامج":"تعديل مبادرة / برنامج";
+ document.getElementById("modalBack").classList.add("show");document.getElementById("programForm").dataset.index=index===null?"":index;
+ if(index!==null){let p=programs[index];let f=document.getElementById("programForm");Object.keys(p).forEach(k=>{if(f.elements[k])f.elements[k].value=p[k]});}
+}
+function closeModal(){document.getElementById("modalBack").classList.remove("show")}
+function editProgram(i){openProgram(i)}
+function viewProgram(i){let p=programs[i];alert(`البرنامج: ${p.name}\nالمجال: ${p.domain}\nالمسؤول: ${p.owner}\nالإنجاز: ${p.progress}%\nالحالة: ${p.status}\nالرابط: ${p.link||"لا يوجد"}`)}
+function deleteProgram(i){if(confirm("هل تريد حذف البرنامج؟")){programs.splice(i,1);renderAll();toast("تم حذف البرنامج")}}
+document.getElementById("programForm").addEventListener("submit",e=>{
+ e.preventDefault();let f=e.target,d=Object.fromEntries(new FormData(f).entries());["current","target","previous","value","valueTarget","progress"].forEach(k=>d[k]=Number(d[k]||0));let i=f.dataset.index;
+ if(i==="") programs.push(d); else programs[Number(i)]=d;renderAll();closeModal();toast(i===""?"تم حفظ المبادرة":"تم تحديث المبادرة");
+});
+function saveAndNew(){document.getElementById("programForm").requestSubmit();setTimeout(()=>openProgram(),300)}
+function addIndicator(){let name=prompt("اكتب نص المؤشر الجديد:");if(!name)return;let domain=prompt("اكتب المجال:",domains[0]);indicators.push([domain||domains[0],name,70,90]);renderAll();toast("تمت إضافة المؤشر")}
+function viewIndicator(i){alert(`المجال: ${indicators[i][0]}\nالمؤشر: ${indicators[i][1]}\nالدرجة الحالية: ${indicators[i][2]}\nالمستهدفة: ${indicators[i][3]}`)}
+function editIndicator(i){let v=prompt("تعديل الدرجة الحالية:",indicators[i][2]);if(v!==null){indicators[i][2]=Number(v);renderAll();toast("تم تعديل المؤشر")}}
+function deleteIndicator(i){if(confirm("حذف المؤشر؟")){indicators.splice(i,1);renderAll();toast("تم حذف المؤشر")}}
+function addMember(){let name=prompt("اسم العضو:");if(!name)return;let role=prompt("المسمى:","معلمة");let task=prompt("المهمة:","التنفيذ والمتابعة");team.push({name,role,task,domain:domains[1],share:50});renderAll();toast("تمت إضافة عضو الفريق")}
+function editMember(i){let m=team[i],n=prompt("الاسم:",m.name);if(n!==null){m.name=n;m.share=Number(prompt("نسبة المشاركة:",m.share)||m.share);renderAll()}}
+function exportTable(type){
+ let rows=type==="programs"?[["المجال","المؤشر","المبادرة","المسؤول","البداية","النهاية","الإنجاز","الحالة"],...programs.map(p=>[p.domain,p.indicator,p.name,p.owner,p.start,p.end,p.progress,p.status])]:[["المجال","المؤشر","الحالية","المستهدفة"],...indicators.map(x=>[x[0],x[1],x[2],x[3]])];
+ let ws=XLSX.utils.aoa_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"البيانات");XLSX.writeFile(wb,`تقرير_${type}_${Date.now()}.xlsx`);toast("تم تصدير Excel")}
+function printReport(title){let w=window.open("","_blank");w.document.write(`<html dir="rtl"><head><title>${title}</title><style>body{font-family:Arial;padding:30px;color:#222}h1{color:#5b2a91}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#eee6f8}</style></head><body><h1>${title}</h1><h3>الابتدائية الثالثة والثمانون للطفولة المبكرة والروضة الملحقة بها</h3><p>العام الدراسي: 1448هـ / 2026م</p>${document.querySelector(".section.card").innerHTML}<hr><p>مديرة المدرسة: أمل عمر الزايدي — إعداد وتصميم: ريما الحارثي</p></body></html>`);w.document.close();w.print()}
+renderAll();
+</script>
+</body>
+</html>
